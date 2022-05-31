@@ -14,6 +14,48 @@ from matplotlib.backends.backend_tkagg import (
     NavigationToolbar2Tk
 )
 
+# Stolen from: https://stackoverflow.com/questions/20399243/display-message-when-hovering-over-something-with-mouse-cursor-in-python
+###
+class ToolTip(object):
+
+    def __init__(self, widget):
+        self.widget = widget
+        self.tipwindow = None
+        self.id = None
+        self.x = self.y = 0
+
+    def showtip(self, text):
+        "Display text in tooltip window"
+        self.text = text
+        if self.tipwindow or not self.text:
+            return
+        x, y, cx, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 60
+        y = y + cy + self.widget.winfo_rooty() + 30
+        self.tipwindow = tw = Toplevel(self.widget)
+        tw.wm_overrideredirect(1)
+        tw.wm_geometry("+%d+%d" % (x, y))
+        label = Label(tw, text=self.text, justify=LEFT,
+                      background="#ffffe0", relief=SOLID, borderwidth=1,
+                      font=("helvetica", "10", "normal"))
+        label.pack(ipadx=1)
+
+    def hidetip(self):
+        tw = self.tipwindow
+        self.tipwindow = None
+        if tw:
+            tw.destroy()
+
+def CreateToolTip(widget, text):
+    toolTip = ToolTip(widget)
+    def enter(event):
+        toolTip.showtip(text)
+    def leave(event):
+        toolTip.hidetip()
+    widget.bind('<Enter>', enter)
+    widget.bind('<Leave>', leave)
+###
+
 class StockCalculator(tk.Tk):
 	def __init__(self):
 		super().__init__()
@@ -23,51 +65,90 @@ class StockCalculator(tk.Tk):
 		self.geometry("1280x720")
 		self.resizable(True,True)
 		
-		### define 4 frames which build GUI 
+		# init layout 
+		self.init_layout()
+		
+		# init text boxes 
+		self.init_txt_elements()
+
+		# init sliders 
+		self.init_slider_elements()
+
+		# init dropdowns
+		self.init_dropdown_elements()
+		
+		# init buttons
+		self.init_btn_elements()
+		
+		# init plot
+		self.init_plot_area_elements()
+		
+		# init entries
+		self.init_entry_elements()
+
+		# add hover info
+		self.init_hover_elements()
+
+		# dict which stores all parameter values
+		self.stock_parameters = {}
+		
+
+	# define 4 frames which build GUI
+	def init_layout(self):	 
+
 		# menu left
-		self.menu_left = tk.Frame(self, width=500, bg="#ababab")
-		self.menu_left_upper = tk.Frame(self.menu_left, width=500, height=500, bg="red") # sliders 
-		self.menu_left_lower = tk.Frame(self.menu_left, width=500, bg="blue") # buttons 
+		self.menu_left = tk.Frame(self, width=500)
+		self.menu_left_upper = tk.Frame(self.menu_left, width=500, height=500) # menu with sliders 
+		self.menu_left_lower = tk.Frame(self.menu_left, width=500, height=100) # menu with buttons 
 
 		self.menu_left_upper.grid(row=0,column=0,sticky="nsew")
 		self.menu_left_lower.grid(row=1,column=0,sticky="nsew")
+		
+		self.menu_left.rowconfigure(0,weight=1)
+		self.menu_left.rowconfigure(1,weight=1)
+		self.menu_left.grid_columnconfigure(0,weight=1)
 
         # menu right
-		self.menu_right = tk.Frame(self, width=600, bg="#dfdfdf")
-		self.menu_right_upper = tk.Frame(self.menu_right,width=600, height=400)
-		self.menu_right_lower = tk.Frame(self.menu_right,width=600, height=250, bg="blue")
+		self.menu_right = tk.Frame(self, width=600)
+		self.menu_right_upper = tk.Frame(self.menu_right,width=600, height=400) # plot area
+		self.menu_right_lower = tk.Frame(self.menu_right,width=600, height=250) # result text area
 
-		self.menu_right_upper.grid(row=0,column=0,sticky="ew")
-		self.menu_right_lower.grid(row=1,column=0,sticky="ew")
+		self.menu_right_upper.grid(row=0,column=0,sticky="nsew")
+		self.menu_right_lower.grid(row=1,column=0,sticky="nsew")
 		self.menu_right.grid_columnconfigure(0,weight=1)
 		
         # define frame positions on grid	
 		self.menu_left.grid(row=0, column=0, rowspan=2, sticky="nsew")
-		self.menu_right.grid(row=0,column=1, rowspan=2, sticky="nsew")
+		self.menu_right.grid(row=0, column=1, rowspan=2, sticky="nsew")
 		
         # define grid 
-		self.grid_rowconfigure(1, weight=1)
+		self.grid_columnconfigure(0, weight=1)
 		self.grid_columnconfigure(1, weight=1)
-		
-		# define text fields and placement
+	
+
+	# define text fields and placement
+	def init_txt_elements(self):
+				
 		self.txt_results = tk.Text(self.menu_right_lower, borderwidth=2, relief="solid")
 		self.txt_results.insert('1.0', 'Results: ')
-		#self.txt_results['state'] = 'disabled'
 		self.txt_results.pack(side="top", fill="both", expand=True,pady=5,padx=5)
 		
 		self.txt_status = tk.Text(self.menu_left_lower, borderwidth=2, relief="solid")
 		self.txt_status.insert('1.0', 'Status: ')
-		#self.txt_status['state'] = 'disabled'
-		self.txt_status.grid(row=1,column=0,columnspan=4, rowspan=1,ipady=5,ipadx=5)
-				
+		self.txt_status.grid(row=1,column=0,columnspan=4, rowspan=1,pady=5,padx=5)
+
+
+	# define sliders and placement
+	def init_slider_elements(self):
+
 		# define sliders + label 
-		self.tax_slider = tk.Scale(self.menu_left_upper, from_=0, to=10, resolution=0.01, tickinterval=5,orient=HORIZONTAL)
+		self.tax_slider = tk.Scale(self.menu_left_upper, from_=0, to=10, resolution=0.01, tickinterval=1,orient=HORIZONTAL)
 		self.tax_slider_description = tk.Label(self.menu_left_upper, text="Tax [%]:")
-		self.custody_fee_slider = tk.Scale(self.menu_left_upper, from_=0, to=10, resolution=0.01, tickinterval=5,orient=HORIZONTAL)
+		self.custody_fee_slider = tk.Scale(self.menu_left_upper, from_=0, to=10, resolution=0.01, tickinterval=1,orient=HORIZONTAL)
 		self.custody_fee_slider_description = tk.Label(self.menu_left_upper, text="Custody fee [%]: ")
-		self.interest_slider = tk.Scale(self.menu_left_upper, from_=0, to=20, resolution=0.01, tickinterval=5,orient=HORIZONTAL)
+		self.interest_slider = tk.Scale(self.menu_left_upper, from_=0, to=20, resolution=0.01, tickinterval=2,orient=HORIZONTAL)
 		self.interest_slider_description = tk.Label(self.menu_left_upper, text="Interest [%]: ")
-		self.running_costs_slider = tk.Scale(self.menu_left_upper, from_=0, to=10, resolution=0.01, tickinterval=2,orient=HORIZONTAL)
+		self.running_costs_slider = tk.Scale(self.menu_left_upper, from_=0, to=10, resolution=0.01, tickinterval=1,orient=HORIZONTAL)
 		self.running_costs_slider_description = tk.Label(self.menu_left_upper, text="Running costs [%]: ")
 		self.nbr_years_slider = tk.Scale(self.menu_left_upper, from_=0, to=100, resolution=1, tickinterval=10,orient=HORIZONTAL)
 		self.nbr_years_slider_description = tk.Label(self.menu_left_upper, text="Number of years [years]: ")
@@ -86,8 +167,10 @@ class StockCalculator(tk.Tk):
 		
 		# slider 3 times size of label
 		self.menu_left_upper.columnconfigure(1,weight=3)
-		
-		# define dropdown elements and placement
+	
+
+	# define dropdown elements and placement
+	def init_dropdown_elements(self):
 		market_list = ["Euronext Brussels","Euronext Paris","Euronext Amsterdam","Euronext Lisboa","Euronext Dublin","Euronext Expert Market","NYSE","NYSE Amex","NYSE MKT","Nasdaq",
         "OTC BB","Toronto","Germany","Czechia","Hungary","Poland","Sweden","Switserland","UK","Spain","Denmark","Italy","Norway","Finland","Austria","Luxembourg","Greece","Ireland",
             "South-Africa","Australia","Hong Kong","Japan"]
@@ -108,23 +191,24 @@ class StockCalculator(tk.Tk):
 		self.frequency_dropdown_description.grid(row=8,column=0,sticky="we",padx=5,pady=5)
 		self.frequency_dropdown.grid(row=8,column=1,sticky="we",padx=5,pady=5)
 
-		# define buttons and placement
+	# define buttons and placement	
+	def init_btn_elements(self):
+
 		self.btn_calculate = tk.Button(self.menu_left_lower,text="Calculate",command=self.perform_calculations)
 		self.btn_plot = tk.Button(self.menu_left_lower, text="Plot graph",command=self.plot_accumulated_value) # ,command=plot_graph)
-		self.btn_save = tk.Button(self.menu_left_lower, text="Save results")
+		self.btn_save = tk.Button(self.menu_left_lower, text="Save results",command=self.save_results)
 		self.btn_reset = tk.Button(self.menu_left_lower, text="Reset",command=self.reset_interface)
-
 
 		self.btn_calculate.grid(row=0,column=0, pady=5, padx=5,sticky="we")
 		self.btn_plot.grid(row=0,column=1, pady=5, padx=5,sticky="we")
 		self.btn_save.grid(row=0,column=2,padx=5,pady=5,sticky="we")
 		self.btn_reset.grid(row=0,column=3, pady=5, padx=5,sticky="we")
-		
-		# define plot area and placement
+
+
+	# define plot area and placement	
+	def init_plot_area_elements(self):
+
 		self.fig = Figure(figsize=(5,5),dpi=100)
-		#matplotlib.rcParams.update({
-		#	"font.size":12.0
-		#})
 		self.plt_graph = self.fig.add_subplot(111)
 		self.plt_canvas = FigureCanvasTkAgg(self.fig,self.menu_right_upper)
 		self.plt_canvas.draw()
@@ -133,7 +217,10 @@ class StockCalculator(tk.Tk):
 		self.plt_toolbar.update()
 		self.plt_canvas._tkcanvas.pack(side="top",fill="both",expand=True)
 
-		# define deposit entries and placement
+
+	# define deposit entries and placement
+	def init_entry_elements(self):
+		
 		self.regular_deposit_entry = ttk.Entry(self.menu_left_upper)
 		self.regular_deposit_entry.insert(INSERT,"150")
 		self.regular_deposit_entry_description = tk.Label(self.menu_left_upper, text="Regular deposit: ")
@@ -146,20 +233,62 @@ class StockCalculator(tk.Tk):
 		self.regular_deposit_entry.grid(row=1,column=1,sticky="we",padx=5,pady=5)
 		self.regular_deposit_entry_description.grid(row=1,column=0,sticky="we",padx=5,pady=5)
 
-	
-	# convert entry to float
+	# define tooltip hover 
+	def init_hover_elements(self):
+		# entries
+		CreateToolTip(self.initial_deposit_entry_description,"Initial deposit that is transferred to the brokerage account.")
+		CreateToolTip(self.regular_deposit_entry_description,"Deposit that is transferred to the brokerage account on a regular basis.")
+
+		# sliders 
+		CreateToolTip(self.tax_slider_description,"Taxes to be payed during the acquisition of the stock(s).")
+		CreateToolTip(self.custody_fee_slider_description,"Annual fee charged by broker for storing one your stocks.")
+		CreateToolTip(self.interest_slider_description,"Average expected interest rate.")
+		CreateToolTip(self.running_costs_slider_description,"Annual fee deducted from stock by expeditor of the stock (aka expense ratio).")
+		CreateToolTip(self.nbr_years_slider_description,"Number of years invested in stock.")
+
+		# dropdowns
+		CreateToolTip(self.market_dropdown_description,"Stock market where stock is registered.")
+		CreateToolTip(self.frequency_dropdown_description,"Frequency during which stocks are acquired via the regular deposit.")
+
+		# buttons
+		CreateToolTip(self.btn_calculate,"Perform calculations with selected parameters.")
+		CreateToolTip(self.btn_plot, "Plot accumulated sum of stock value with selected parameters.")
+		CreateToolTip(self.btn_save, "Save current parameters and results to a text file.")
+		CreateToolTip(self.btn_reset,"Reset interface and parameters to default values.")
+
+
+	# convert entry to float value
 	def parse_entry(self,entry_value):
 		try:
 			parsed_value = float(entry_value)
 			return parsed_value
-		except:
-			#TODO throw error message
-			messagebox.showerror("Error", "Invalid entry input")
-			return -1
+		except: # print error message if unsuccessful
+			messagebox.showerror("Error", "[ERROR] Invalid entry input.")
+			self.print_status_box("[ERROR] Invalid entry input.")
+			return 
+
+	# update dict which stores values per parameter
+	def update_parameters(self):
+		self.stock_parameters['initial_deposit'] = self.parse_entry(self.initial_deposit_entry.get())
+		self.stock_parameters['regular_deposit'] = self.parse_entry(self.regular_deposit_entry.get())
+		self.stock_parameters['market'] = self.market_dropdown.get()
+		self.stock_parameters['deposit_frequency'] = self.frequency_dropdown.get()
+		self.stock_parameters['nbr_years'] = self.nbr_years_slider.get()
+		self.stock_parameters['tax_pct'] = self.tax_slider.get()/100
+		self.stock_parameters['custody_fee_pct'] = self.custody_fee_slider.get()/100
+		self.stock_parameters['interest_pct'] = self.interest_slider.get()/100
+		self.stock_parameters['running_costs_pct'] = self.running_costs_slider.get()/100
+		
+		# flag indicating that parameters have changed
+		self.stock_parameters['updated'] = True
+		
+		
+	def get_parameters(self):
+		return self.stock_parameters
+		
 
 	# calculate brokerage fee 
 	def calculate_brokerage_fee(self, value, market):
-		#print(f"Value: {value}, market: {market}")
 		if market in ["Euronext Brussels","Euronext Paris","Euronext Amsterdam","Euronext Lisboa","Euronext Dublin"]:
 			if (value <= 2500):
 				fee = 7.5
@@ -222,6 +351,7 @@ class StockCalculator(tk.Tk):
 			fee = -1
 		return fee
 
+
 	# calculate how many deposits per year from slider value
 	def calculate_deposit_frequency(self, value):
 		if (value == "Monthly"):
@@ -239,13 +369,14 @@ class StockCalculator(tk.Tk):
 		else:
 			return 0
 
+
 	# calculate accumulated value 
 	def calculate_accumulated_value(self, initial_deposit, regular_deposit, frequency, interest, running_cost, custody_fee, time):
 		
 		# interest per deposit (time dependent)
 		interests = np.linspace(0,12,num=frequency,endpoint=False)
 		
-		accumulated_sum = 0
+		accumulated_sum = initial_deposit
 		accumulated_sum_list = []
 				
 		accumulated_deposits = initial_deposit
@@ -253,23 +384,25 @@ class StockCalculator(tk.Tk):
 
 		breakeven_period = -1
 		
-
+		# calculate sum after one year
+		yearly_sum = 0
+		deposits = 0
+		for i in interests:
+			yearly_sum += regular_deposit*((1+interest)**((12-i)/12))
+			deposits += regular_deposit
+		
+		# calculate accumulating sum
 		for year in range(0,time):
-			yearly_sum = 0
-			deposits = 0
-			for i in interests:
-				yearly_sum += regular_deposit*((1+interest)**((12-i)/12))
-				deposits += regular_deposit
-
-			accumulated_sum += yearly_sum*(1+interest)**(year)
-			accumulated_sum += initial_deposit*(1+interest)**year
+			accumulated_sum *= (1+interest)
+			accumulated_sum += yearly_sum
+			accumulated_deposits += deposits
 			accumulated_sum -= accumulated_sum*running_cost # running costs subtracted at the end of financial year        
 			accumulated_sum -= accumulated_sum*custody_fee  # custody_fee calculated after running cost subtraction
 			accumulated_sum_list.append(accumulated_sum)
-			
-			accumulated_deposits += deposits
 			accumulated_deposits_list.append(accumulated_deposits)
-		#print(accumulated_deposits_list)
+
+		#print(accumulated_sum_list)
+		
 		#adjust accumulated sum for taxes and fee
 		market = self.market_dropdown.get()
 		initial_fee = self.calculate_brokerage_fee(initial_deposit, market) if initial_deposit > 0 else 0
@@ -287,8 +420,7 @@ class StockCalculator(tk.Tk):
 			accumulated_sum_list[(i-1)] -= (fee_overhead*i)
 			accumulated_sum_list[(i-1)] -= (taxes_per_year*i)
 
-
-		# TODO: add break-even calculation + return 
+		# break-even calculation 
 		for i in range(len(accumulated_sum_list)):
 			if accumulated_sum_list[i] >= accumulated_deposits_list[i]:
 				breakeven_period = i
@@ -296,22 +428,24 @@ class StockCalculator(tk.Tk):
 		
 		self.accumulated_sum_list = accumulated_sum_list
 		self.accumulated_deposits_list = accumulated_deposits_list
-
+		
 		return accumulated_sum, breakeven_period
 	
+
 	# plot graph 
 	def plot_accumulated_value(self):
 		
 		if self.nbr_years_slider.get() < 2:
 			messagebox.showwarning("WARNING","[WARNING] Unable to plot with given parameters (number of years < 2).")
+			self.print_status_box("[WARNING] Unable to plot with given parameters (number of years < 2).")
 			return
 
 		elif self.nbr_years_slider.get() != len(self.accumulated_sum_list):
 			messagebox.showwarning("WARNING","[WARNING] Plot only possible after re-performing calculations.")
+			self.print_status_box("[WARNING] Plot only possible after re-performing calculations.")
 			return
 
 		# config graph
-		#clear_output(wait=True)
 		self.plt_graph.clear() #change 
 		#plt.rcParams['figure.figsize'] = [10, 10] # size in cm
 		
@@ -331,21 +465,24 @@ class StockCalculator(tk.Tk):
 		self.plt_graph.fill_between(years_list,self.accumulated_sum_list,self.accumulated_deposits_list,where=np.array(self.accumulated_sum_list)<np.array(self.accumulated_deposits_list),interpolate=True,color='red',alpha=0.2,label=r'Loss')
 		self.plt_graph.legend(loc='best')
 		self.plt_canvas.draw()
+		self.print_status_box("[INFO] Plot drawn succesfully.")
+
 
 	# TODO rewrite 
+	# calculate results
 	def perform_calculations(self):
-		# calculations TODO clean
-
-		# read input values 
+		
+		# read input values
 		initial_deposit = self.parse_entry(self.initial_deposit_entry.get())
-		regular_deposit = self.parse_entry(self.regular_deposit_entry.get()) 
+		regular_deposit = self.parse_entry(self.regular_deposit_entry.get())
+		if (initial_deposit == None) or (regular_deposit == None):
+			return 
 		market = self.market_dropdown.get()
 		deposit_frequency = self.frequency_dropdown.get()
 		if self.nbr_years_slider.get() > 0:
 			nbr_years = self.nbr_years_slider.get()
 		else:
 			nbr_years = 1
-		#nbr_years = self.nbr_years_slider.get()  if (self.nbr_years_slider.get() > 0) else 1 
 		tax_pct = self.tax_slider.get()/100
 		custody_fee_pct = self.custody_fee_slider.get()/100
 		interest_pct = self.interest_slider.get()/100
@@ -399,6 +536,8 @@ class StockCalculator(tk.Tk):
 		result_string += "Profit after {years} years: accumulated_sum - taxes - deposit_fees = {accumulated_sum:.4f} - {taxes:.4f} - {deposit_fees:.4f} = {profit:.4f} [{profit_pct:.4f} %]\n".format(years=nbr_years, accumulated_sum=accumulated_sum, taxes=total_taxes, deposit_fees=total_fees,profit=profit, profit_pct=profit_pct*100)
 		result_string += "Estimated break even time: {breakeven} years\n".format(breakeven=break_even_period)
 		self.txt_results.insert(INSERT,result_string)
+
+		self.print_status_box("[INFO] Calculations performed succesfully.")
 	
 	### reset interface ###
 	# TODO rewrites
@@ -430,13 +569,43 @@ class StockCalculator(tk.Tk):
 		self.plt_graph.clear()
 		self.plt_canvas.draw()
 		
-
 	# debugging 
 	def print_status_box(self,value):
-		print(self.txt_status.get())
-		new_text = "Value: " + str(value) 
-		self.txt_status.insert(tk.END,new_text)
-
+		self.txt_status.delete(1.0,END)
+		new_text = "Status: \n" + str(value) 
+		self.txt_status.insert(INSERT,new_text)
+	
+	# save current config to a file
+	def save_results(self):
+		filepath = asksaveasfilename(
+        	defaultextension=".txt",
+        	filetypes=[("Text Files", "*.txt"), ("All Files", "*.*")],
+    	)
+		if not filepath:
+			messagebox.showinfo("INFO","[INFO] operation aborted by user.")
+			return
+		with open(filepath, mode="a", encoding="utf-8") as output_file:
+			self.print_status_box(f"[INFO] Adding results to file: {filepath}\n")
+			output_file.write("##########\n")
+			output_file.write(self.print_parameters())
+			output_file.write("~~~~~~~~~~\n")
+			output_file.write(self.txt_results.get('1.0','end'))
+			output_file.close()
+			return 
+	
+	# print parameters 
+	def print_parameters(self):
+		result_txt = "Parameters: \n"
+		result_txt += f"Initial deposit: {self.parse_entry(self.initial_deposit_entry.get())} \n"
+		result_txt += f"Regular deposit: {self.parse_entry(self.regular_deposit_entry.get())} \n"
+		result_txt += f"Market: {self.market_dropdown.get()}\n"
+		result_txt += f"Deposit frequency: {self.frequency_dropdown.get()}\n"
+		result_txt += f"Number of years: {self.nbr_years_slider.get()}\n"
+		result_txt += f"Tax percentage: {self.tax_slider.get()/100:.4f}\n"
+		result_txt += f"Custody fee percentage: {self.custody_fee_slider.get()/100:.4f}\n"
+		result_txt += f"Interest percentage: {self.interest_slider.get()/100:.4f}\n"
+		result_txt += f"Running costs percentage: {self.running_costs_slider.get()/100:.4f}\n"
+		return result_txt		
 
 
 if __name__ == "__main__":
