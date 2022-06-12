@@ -42,8 +42,35 @@ If anything were to go wrong during execution, an appropriate message will pop u
 
 
 ## How it works
-* Maths
-* Example
+#### Maths
+
+#### Example
+If: <br>
+- Initial deposit = 1000
+- Regular deposit = 500
+- Number of years invested = 2
+- Interest = 5%
+- Running costs = 1% 
+- Custody fee = 2% 
+- Frequency = 2 deposits per year (January and July )
+
+<b> First year: </b>
+$$ deposit_{initial} = 1000 * (1 + 0.05)^1 = 1050 $$
+$$ deposit_1 = 500 * (1 + 0.05)^1 = 525 $$
+$$ deposit_2 = 500 * (1 + 0.05)^{0.5} = 512.35 $$
+$$ sum  = 525 + 512.3475 + 1050 = 2087.35 $$
+$$ runningcosts = 2087.3475 * 0.01 = 20.88 $$
+$$ custodyfee = (sum - runningcosts) * 0.02 = 41.33 $$
+$$ sum_{1 year} = 2025.14 $$
+<br>
+<b> Second year:</b>
+$$ sum = sum_{1_year} * (1 + 0.05) + 1037.35 = 2126.40 + 1037.35  = 3163.75 $$
+$$ runningcosts = 31.64 $$
+$$ custodyfee = (sum - runningcosts) * 0.02 = 62.64 $$
+$$ sum_{2 year} = 3069.47 $$ 
+$$ sum_{deposits} = 1000 + 2 * 500 + 2 * 500 = 3000 $$
+$$ profit = 3069.47 - 3000 - brokeragefee^* $$
+Brokerage fee depending on chosen market.
 
 ### Known limitations
 * Tkinter
