@@ -3,8 +3,7 @@ from tkinter import ttk
 from tkinter.filedialog import asksaveasfilename
 from tkinter import *
 from tkinter import messagebox
-import matplotlib.pyplot as plt
-import numpy as np
+from numpy import linspace, array
 import matplotlib 
 
 matplotlib.use('TkAgg')
@@ -405,7 +404,7 @@ class StockCalculator(tk.Tk):
 		parameter_dict = self.get_parameters()
 
 		# interest per deposit (time dependent)
-		interests = np.linspace(0,12,num=parameter_dict['frequency'], endpoint=False)
+		interests = linspace(0,12,num=parameter_dict['frequency'], endpoint=False)
 		
 		accumulated_sum = parameter_dict['initial_deposit']
 		accumulated_sum_list = []
@@ -417,7 +416,7 @@ class StockCalculator(tk.Tk):
 		yearly_sum = 0
 		deposits = 0
 		for i in interests:
-			yearly_sum += parameter_dict['regular_deposit']*((1 + parameter_dict['interest_pct'])**((12-i)/12))
+			yearly_sum += parameter_dict['regular_deposit']*(1 + parameter_dict['interest_pct']*((12-i)/12))
 			deposits += parameter_dict['regular_deposit']
 		
 		if (parameter_dict['nbr_years'] == 0):
@@ -481,12 +480,12 @@ class StockCalculator(tk.Tk):
 		
 		# plot graph
 		years  = parameter_dict['nbr_years']
-		years_list = np.linspace(0, years,num=years)
+		years_list = linspace(0, years,num=years)
 							
 		self.plt_graph.plot(years_list, self.accumulated_sum_list, label=r'Accumulated sum', linewidth=2, color='blue')
 		self.plt_graph.plot(years_list, self.accumulated_deposits_list, label=r'Accumulated deposits', linewidth=1, color='black')
-		self.plt_graph.fill_between(years_list, self.accumulated_sum_list, self.accumulated_deposits_list, where=np.array(self.accumulated_sum_list)>np.array(self.accumulated_deposits_list), interpolate=True, color='green', alpha=0.2, label=r'Profit')
-		self.plt_graph.fill_between(years_list, self.accumulated_sum_list, self.accumulated_deposits_list, where=np.array(self.accumulated_sum_list)<np.array(self.accumulated_deposits_list), interpolate=True, color='red', alpha=0.2, label=r'Loss')
+		self.plt_graph.fill_between(years_list, self.accumulated_sum_list, self.accumulated_deposits_list, where=array(self.accumulated_sum_list) > array(self.accumulated_deposits_list), interpolate=True, color='green', alpha=0.2, label=r'Profit')
+		self.plt_graph.fill_between(years_list, self.accumulated_sum_list, self.accumulated_deposits_list, where=array(self.accumulated_sum_list) < array(self.accumulated_deposits_list), interpolate=True, color='red', alpha=0.2, label=r'Loss')
 		self.plt_graph.legend(loc='best')
 		self.plt_canvas.draw()
 		self.print_status_box("[INFO] Plot drawn succesfully.")
