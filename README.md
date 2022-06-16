@@ -42,9 +42,29 @@ If anything were to go wrong during execution, an appropriate message will pop u
 
 
 ## How it works
-#### Maths
+### Maths
+- Basics: 
+Compound interest is expressed as: 
+$$ A = P (1 + \frac{r}{n})^{nt}$$ 
+Where: 
+	- total amount A
+	- initial amount P
+	- interest rate r
+	- compounds per year n
+	- time t
+(Example [compound interest](https://www.thecalculatorsite.com/articles/finance/compound-interest-formula.php))
 
-#### Example
+For our equation, this formula can be simplified to the form: 
+$$ A = P (1 + r)^{t} $$.
+
+
+- Accumulation: 
+The basic compound interest formula is only valid if only one initial deposit is made.
+
+
+- Added complexity:
+
+### Example
 If: <br>
 - Initial deposit = 1000
 - Regular deposit = 500
@@ -55,21 +75,22 @@ If: <br>
 - Frequency = 2 deposits per year (January and July )
 
 <b> First year: </b>
-$$ deposit_{initial} = 1000 * (1 + 0.05)^1 = 1050 $$
-$$ deposit_1 = 500 * (1 + 0.05)^1 = 525 $$
-$$ deposit_2 = 500 * (1 + 0.05)^{0.5} = 512.35 $$
-$$ sum  = 525 + 512.3475 + 1050 = 2087.35 $$
-$$ runningcosts = 2087.3475 * 0.01 = 20.88 $$
-$$ custodyfee = (sum - runningcosts) * 0.02 = 41.33 $$
-$$ sum_{1 year} = 2025.14 $$
+$$ deposit_{initial} = 1000 * (1 + 0.05) = 1050 $$
+$$ deposit_1 = 500 * (1 + 0.05*((12-0)/12)) = 525 $$
+$$ deposit_2 = 500 * (1 + 0.05*((12-6)/12)) = 512.5 $$
+$$ sum  = 525 + 512.5 + 1050 = 2087.5 $$
+$$ runningcosts = 2087.3475 * 0.01 = 20.875 $$
+$$ custodyfee = (sum - runningcosts) * 0.02 = 41.3325 $$
+$$ sum_{1 year} = 2025.2925 $$
 <br>
 <b> Second year:</b>
-$$ sum = sum_{1_year} * (1 + 0.05) + 1037.35 = 2126.40 + 1037.35  = 3163.75 $$
+$$ sum = sum_{1_year} * (1 + 0.05) + 1037.5 = 2126.40 + 1037.5  = 3164.06 $$
 $$ runningcosts = 31.64 $$
 $$ custodyfee = (sum - runningcosts) * 0.02 = 62.64 $$
-$$ sum_{2 year} = 3069.47 $$ 
+$$ sum_{2 year} = 3069.77 $$ 
 $$ sum_{deposits} = 1000 + 2 * 500 + 2 * 500 = 3000 $$
-$$ profit = 3069.47 - 3000 - brokeragefee^* $$
+$$ profit = 3069.77 - 3000 - taxes^ - brokeragefee^* $$
+Taxes depending on chosen market and stock type.
 Brokerage fee depending on chosen market.
 
 ### Known limitations
