@@ -302,7 +302,10 @@ class StockCalculator(tk.Tk):
 		self.stock_parameters['regular_buyers_tax'] = self.stock_parameters['regular_deposit'] * self.stock_parameters['tax_pct']
 		self.stock_parameters['initial_buyers_tax'] = self.stock_parameters['initial_deposit'] * self.stock_parameters['tax_pct']
 		self.stock_parameters['taxes_per_year'] = self.stock_parameters['regular_buyers_tax'] * self.stock_parameters['frequency']
-		
+		self.stock_parameters['accumulated_sum_list'] = [self.stock_parameters['initial_deposit']]
+		self.stock_parameters['accumulated_deposits_list'] = [self.stock_parameters['initial_deposit']]
+		self.stock_parameters['breakeven'] = 0
+
 		# flag indicating that parameters have changed
 		self.stock_parameters['updated'] = True
 		
@@ -437,11 +440,11 @@ class StockCalculator(tk.Tk):
 			#print(accumulated_sum_list)
 			
 			#adjust accumulated sum for taxes and fee		
-			accumulated_sum_list[0] -= parameter_dict['initial_fee']
-			accumulated_sum_list[0] -= parameter_dict['initial_buyers_tax']
-			for i in range(1,(parameter_dict['nbr_years']+1)):
-				accumulated_sum_list[(i-1)] -= (parameter_dict['regular_fee_overhead'] * i)
-				accumulated_sum_list[(i-1)] -= (parameter_dict['taxes_per_year'] * i)
+			# accumulated_sum_list[0] -= parameter_dict['initial_fee']
+			# accumulated_sum_list[0] -= parameter_dict['initial_buyers_tax']
+			# for i in range(1, (parameter_dict['nbr_years']+1)):
+			# 	accumulated_sum_list[(i-1)] -= (parameter_dict['regular_fee_overhead'] * i)
+			# 	accumulated_sum_list[(i-1)] -= (parameter_dict['taxes_per_year'] * i)
 
 			# break-even calculation 
 			breakeven_period = -1
@@ -450,10 +453,9 @@ class StockCalculator(tk.Tk):
 					breakeven_period = i
 					break
 			
-			self.accumulated_sum_list = accumulated_sum_list
-			self.accumulated_deposits_list = accumulated_deposits_list
-
-		return accumulated_sum, breakeven_period	
+			self.stock_parameters['accumulated_sum_list'] = accumulated_sum_list
+			self.stock_parameters['accumulated_deposits_list'] = accumulated_deposits_list
+			self.stock_parameters['breakeven'] = breakeven_period
 
 	# plot graph 
 	def plot_accumulated_value(self):
@@ -482,10 +484,10 @@ class StockCalculator(tk.Tk):
 		years  = parameter_dict['nbr_years']
 		years_list = linspace(0, years,num=years)
 							
-		self.plt_graph.plot(years_list, self.accumulated_sum_list, label=r'Accumulated sum', linewidth=2, color='blue')
-		self.plt_graph.plot(years_list, self.accumulated_deposits_list, label=r'Accumulated deposits', linewidth=1, color='black')
-		self.plt_graph.fill_between(years_list, self.accumulated_sum_list, self.accumulated_deposits_list, where=array(self.accumulated_sum_list) > array(self.accumulated_deposits_list), interpolate=True, color='green', alpha=0.2, label=r'Profit')
-		self.plt_graph.fill_between(years_list, self.accumulated_sum_list, self.accumulated_deposits_list, where=array(self.accumulated_sum_list) < array(self.accumulated_deposits_list), interpolate=True, color='red', alpha=0.2, label=r'Loss')
+		self.plt_graph.plot(years_list, parameter_dict['accumulated_sum_list'], label=r'Accumulated sum', linewidth=2, color='blue')
+		self.plt_graph.plot(years_list, parameter_dict['accumulated_deposits_list'], label=r'Accumulated deposits', linewidth=1, color='black')
+		self.plt_graph.fill_between(years_list, parameter_dict['accumulated_sum_list'], parameter_dict['accumulated_deposits_list'], where=array(parameter_dict['accumulated_sum_list']) > array(parameter_dict['accumulated_deposits_list']), interpolate=True, color='green', alpha=0.2, label=r'Profit')
+		self.plt_graph.fill_between(years_list, parameter_dict['accumulated_sum_list'], parameter_dict['accumulated_deposits_list'], where=array(parameter_dict['accumulated_sum_list']) < array(parameter_dict['accumulated_deposits_list']), interpolate=True, color='red', alpha=0.2, label=r'Loss')
 		self.plt_graph.legend(loc='best')
 		self.plt_canvas.draw()
 		self.print_status_box("[INFO] Plot drawn succesfully.")
@@ -501,13 +503,15 @@ class StockCalculator(tk.Tk):
 		# fee calculations  
 		initial_fee_pct = (parameter_dict['initial_fee']/parameter_dict['initial_deposit']) * 100 if parameter_dict['initial_deposit'] > 0 else 0
 		regular_fee_pct = (parameter_dict['regular_fee']/parameter_dict['regular_deposit']) * 100 if parameter_dict['regular_deposit'] > 0 else 0
-		total_fees = parameter_dict['regular_fee_overhead']  + parameter_dict['initial_fee']
+		total_fees = parameter_dict['regular_fee_overhead'] * parameter_dict['nbr_years']   + parameter_dict['initial_fee']
 		
 		# tax calculations 
 		total_taxes = parameter_dict['taxes_per_year'] * parameter_dict['nbr_years'] + parameter_dict['initial_buyers_tax']
 		
 		# accumulated sum and current running costs 
-		accumulated_sum, break_even_period = self.calculate_accumulated_value()
+		self.calculate_accumulated_value()
+		accumulated_sum =  parameter_dict['accumulated_sum_list'][-1] 
+		break_even_period = parameter_dict['breakeven']
 		running_costs = accumulated_sum * parameter_dict['running_costs_pct']
 
 		# total deposit value 
@@ -534,6 +538,7 @@ class StockCalculator(tk.Tk):
 		result_string += "Custody fee current year: € {fee:.2f}\n".format(fee=custody_fee)
 		result_string += "Current running costs: {running_costs_pct:.2f} x {total_profit:.2f} = € {running_costs:.2f}\n".format(running_costs_pct=parameter_dict['running_costs_pct'], total_profit=accumulated_sum, running_costs=running_costs)
 		result_string += "Total deposited value: ({freq} x € {regular_deposit}) x {years} + {initial_deposit} = € {total}\n".format(freq=parameter_dict['frequency'], regular_deposit=parameter_dict['regular_deposit'],initial_deposit=parameter_dict['initial_deposit'], total=total_deposit, years=parameter_dict['nbr_years'])		
+		result_string += "Total accumulated sum: {accumulated_sum:.2f}\n".format(accumulated_sum=parameter_dict['accumulated_sum_list'][-1])
 		result_string += "Profit after {years} years: accumulated_sum - taxes - deposit_fees = {accumulated_sum:.2f} - {taxes:.2f} - {deposit_fees:.2f} = {profit:.2f} [{profit_pct:.2f} %]\n".format(years=parameter_dict['nbr_years'], accumulated_sum=accumulated_sum, taxes=total_taxes, deposit_fees=total_fees,profit=profit, profit_pct=profit_pct*100)
 		result_string += "Estimated break even time: {breakeven} years\n".format(breakeven=break_even_period)
 		self.txt_results.insert(INSERT, result_string)
@@ -619,4 +624,4 @@ if __name__ == "__main__":
     app = StockCalculator()
     app.mainloop()
 
- 
+
