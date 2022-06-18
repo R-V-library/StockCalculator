@@ -108,30 +108,30 @@ $$ profit = sum_{n} - P_{total} - T_{total} - B_{total} $$
 
 ### Example
 If: <br>
-- Initial deposit = 1000
-- Regular deposit = 500
-- Number of years invested = 2
-- Interest = 5%
-- Running costs = 1% 
-- Custody fee = 2% 
-- Frequency = 2 deposits per year (January and July )
+- Initial deposit $P_{0}$ = 1000
+- Regular deposit $P_{r}$ = 500
+- Number of years invested $n$ = 2
+- Interest $r$ = 5%
+- Running costs $C_{r}$ = 1% 
+- Custody fee $C_{f}$ = 2% 
+- Frequency $f$ = 2 deposits per year (January and July )
 
 <b> First year: </b>
-$$ deposit_{initial} = 1000 * (1 + 0.05) = 1050 $$
-$$ deposit_1 = 500 * (1 + 0.05*((12-0)/12)) = 525 $$
-$$ deposit_2 = 500 * (1 + 0.05*((12-6)/12)) = 512.5 $$
-$$ sum  = 525 + 512.5 + 1050 = 2087.5 $$
-$$ runningcosts = 2087.3475 * 0.01 = 20.875 $$
-$$ custodyfee = (sum - runningcosts) * 0.02 = 41.3325 $$
-$$ sum_{1 year} = 2025.2925 $$
+$$ P_{0} = 1000 $$
+$$ P_{r_{1}} = 500 * (1 + 0.05*( \fraq{12-0}{12} )) = 525 $$
+$$ P_{r_{2}} = 500 * (1 + 0.05*(\fraq{12-6}{12})) = 512.5 $$
+$$ P_{year} = P_{r_{1}}  + P_{r_{2}}  = 1037.5 $$
+$$ sum_{1}^*  = 1000 *  (1 + 0.05) + 525 + 512.5 = 2087.5 $$
+$$ sum_{1} = [2087.5 (1 - C_{r}) ](1 - C_{f})  = 2025.2925 $$
+$$ C_{r} = 20.875 $$
+$$ C_{f} = 41.3325 $$
 <br>
 <b> Second year:</b>
-$$ sum = sum_{1_year} * (1 + 0.05) + 1037.5 = 2126.40 + 1037.5  = 3164.06 $$
-$$ runningcosts = 31.64 $$
-$$ custodyfee = (sum - runningcosts) * 0.02 = 62.64 $$
-$$ sum_{2 year} = 3069.77 $$ 
-$$ sum_{deposits} = 1000 + 2 * 500 + 2 * 500 = 3000 $$
-$$ profit = 3069.77 - 3000 - taxes^ - brokeragefee^* $$
+$$ sum_{2} = [sum_{1} * (1 + 0.05) + P_{year} ](1 - C_{r})(1 - C_{f}) = (2126.40 + 1037.5)(1 - 0.01)(1 - 0.02)  = 3069.77 $$
+$$ C_{r} = 31.64 $$
+$$ C_{f} = 62.64 $$
+$$ P_{total} = P_{0} + n f P_{r}= 1000 + 2 * (2 * 500) = 3000 $$
+$$ profit = sum_{n} - P_{total} - T_{total} - B_{total} = 3069.77 - 3000 - T_{total}^* - B_{total}^* $$
 Taxes depending on chosen market and stock type.
 Brokerage fee depending on chosen market.
 
