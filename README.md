@@ -1,7 +1,9 @@
+
 # Stock Calculator: contents
 GUI application to calculate the accumulated value of stocks.
 - [Overview](#overview)
-- [Usage](#usage)
+- [Tkinter GUI Usage](#tkinter-gui-usage-recommended)
+- [IPython GUI Usage](#ipython-gui-usage-legacy)
 - [How it works](#how-it-works)
 - [Known limitations](#known-limitations)
 - [Dependencies](#dependencies)
@@ -13,8 +15,8 @@ This principle is known as compound interest (read more: [Compound interest Wiki
 The aim of this basic GUI is to calculate the accumulated sum given an initial deposit value, regular deposit value and multiple relevant parameters.
 Most online calculators provide only a very rough estimate of the accumulated value but mostly fail to factor in (hidden) costs. 
 
-## Usage 
-To start the GUI:
+## Tkinter GUI usage (Recommended)
+To start the Tkinter GUI:
 >`cd < place where python script is stored > `
 >`python StockCalculator.pyw `
 
@@ -22,23 +24,46 @@ To start the GUI:
 
 Example usage: 
 1. Set the parameters of choice. 
-<img src="img/default_view_1.png" title="Default Stock Calculator GUI."  alt="Default Stock Calculator GUI." width="600" />
+<img src="img/default_view_1.png" title="StockCalculator set parameters."  alt="StockCalculator set parameters." width="600" />
 
 2. Calculate the results via the calculate button. <br> Results will appear in the results textbox.
-<img src="img/default_view_2.png" title="Default Stock Calculator GUI."  alt="Default Stock Calculator GUI." width="600" />
+<img src="img/default_view_2.png" title="StockCalculator example results."  alt="Stockcalculator example results." width="600" />
 
 3. Make a plot via the plot button.
-<img src="img/default_view_3.png" title="Default Stock Calculator GUI."  alt="Default Stock Calculator GUI." width="600" />
+<img src="img/default_view_3.png" title="StockCalculator plot generation."  alt="StockCalculator plot generation." width="600" />
 
 4. Save your current configuration and their results to a file via the save button.
-<img src="img/default_view_4.png" title="Default Stock Calculator GUI."  alt="Default Stock Calculator GUI." width="600" />
+<img src="img/default_view_4.png" title="StockCalculator save results."  alt="StockCalculator save results." width="600" />
 
 5. Reset the interface to default values via the reset button.
-<img src="img/default_view_5.png" title="Default Stock Calculator GUI."  alt="Default Stock Calculator GUI." width="600" />
+<img src="img/default_view_5.png" title="StockCalculator reset interface."  alt="StockCalculator reset interface." width="600" />
 
 If anything were to go wrong during execution, an appropriate message will pop up and this message will remain in the status textbox.
-<img src="img/default_view_6.png" title="Default Stock Calculator GUI."  alt="Default Stock Calculator GUI." width="600" />
+<img src="img/default_view_6.png" title="StockCalculator error message."  alt="StockCalculator error message." width="600" />
 
+
+## IPython GUI usage (Legacy)
+To start the IPython GUI:
+> `cd < place where notebook is stored >` 
+> `jupyter notebook StockCalculator.ipynb`
+
+Your default browser should open the jupyter notebook interface. 
+If the interface does not appear open your browser and go to:
+> localhost:8888/notebooks/StockCalculator.ipynb
+
+Example usage:
+1. Execute all code cells until GUI appears.
+<img src="img/jupyter_gui_1.png" title="Execute Jupyter notebook code cells." alt="Execute Jupyter notebook code cells." width="600" />
+
+2. Fill in parameters
+<img src="img/jupyter_gui_2.png" title="StockCalculator notebook parameters." alt="StockCalculator notebook parameters." width="600" />
+<img src="img/jupyter_gui_3.png" title="StockCalculator notebook example usage." alt="StockCalculator notebook example usage." width="600" />
+
+3. Example output
+<img src="img/jupyter_gui_4.png" title="StockCalculator example output." alt="StockCalculator example output." width="600" />
+
+4. Plot generation
+<img src="img/jupyter_gui_5.png" title="StockCalculator plot generation." alt="StockCalculator plot generation." width="600" />
 
 
 ## How it works
@@ -135,8 +160,8 @@ $$ profit = sum_{n} - P_{total} - T_{total} - B_{total} = 3069.77 - 3000 - T_{to
 Taxes depending on chosen market and stock type.
 Brokerage fee depending on chosen market.
 
-### Known limitations
-#### Exactness
+## Known limitations
+### Exactness
 The proposed formulas are more accurate than most similar calculators found online.
 But there are still some limitations to this program.
 - Interest rate:
@@ -149,19 +174,26 @@ In real-life stock markets this is never the case since markets fluctuate day by
 Most stock expeditors and banks calculate their respective running costs and custody on a yearly basis. 
 However, this is not set in stone and can vary.
 
-#### Brokerage fee 
+### Brokerage fee 
 Depending on the stock market platform and residing country the brokerage fees might differ from the brokerage fee from the calculator.
 This calculator uses the pricings as presented in the document: [Bolero fees:](https://www.bolero.be/uploads/media/61f801717277e/info-tarieven-nl-220131-ex-ante.pdf)
 
-#### Tkinter
+### Tkinter
 The GUI of the stockcalculator is written using TKinter library which is a default library of Python.
 This is by no means the greatest GUI toolkit and the look is a bit outdated.
 
-### Dependencies
-The program mostly uses the Python standard library, only the matplotlib and numpy packages are necessary.
+## Dependencies
+### TKinter
+The Tkinter program mostly uses the Python standard library, only the matplotlib and numpy packages are necessary.
 
 To check if the packages are installed on your system:
 > `pip list` 
 
 To install dependencies if the required packages are not present:
 > `pip install matplotlib && pip install numpy` 
+
+### Jupyter notebook
+Jupyter notebook can be installed via
+> `pip install notebook`
+
+
